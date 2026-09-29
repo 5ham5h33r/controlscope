@@ -1,0 +1,18 @@
+name: controlscope
+version: 1.0.0
+config-version: 2
+profile: controlscope
+model-paths: [models]
+seed-paths: [seeds]
+test-paths: [tests]
+models:
+  controlscope:
+    staging:
+      +materialized: view
+    intermediate:
+      +materialized: view
+    marts:
+      +materialized: table
+seeds:
+  controlscope:
+    +quote_columns: false

@@ -1,0 +1,12 @@
+[sqlfluff]
+dialect = bigquery
+templater = jinja
+rules = LT01
+max_line_length = 120
+
+[sqlfluff:templater:jinja]
+apply_dbt_builtins = True
+
+[sqlfluff:templater:jinja:macros]
+dbt_ref = {% macro ref(model) %}{{ model }}{% endmacro %}
+dbt_source = {% macro source(source_name, table) %}{{ table }}{% endmacro %}

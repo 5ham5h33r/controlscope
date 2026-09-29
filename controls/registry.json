@@ -1,0 +1,15 @@
+{
+  "registry_version": "1.0.0",
+  "controls": [
+    {"id": "duplicate_invoice", "version": "1.0.0", "kind": "deterministic", "base_risk": 65, "description": "Paid invoice ID repeated for the same vendor"},
+    {"id": "split_payment", "version": "1.0.0", "kind": "deterministic", "base_risk": 70, "description": "Same-day sub-threshold payments to one vendor total at least USD 10,000"},
+    {"id": "off_hours_payment", "version": "1.0.0", "kind": "deterministic", "base_risk": 40, "description": "Payment outside 06:00-22:00 UTC"},
+    {"id": "inactive_vendor_payment", "version": "1.0.0", "kind": "deterministic", "base_risk": 75, "description": "Paid transaction references an inactive vendor"},
+    {"id": "self_approval", "version": "1.0.0", "kind": "deterministic", "base_risk": 80, "description": "Initiator and approver are the same user"},
+    {"id": "missing_high_value_approval", "version": "1.0.0", "kind": "deterministic", "base_risk": 85, "description": "Payment above USD 25,000 has no approver"},
+    {"id": "terminated_user_login", "version": "1.0.0", "kind": "deterministic", "base_risk": 90, "description": "Terminated user logged in"},
+    {"id": "dormant_privileged_login", "version": "1.0.0", "kind": "deterministic", "base_risk": 75, "description": "Privileged user logged in after at least 30 days without a prior login"},
+    {"id": "amount_outlier", "version": "1.0.0", "kind": "anomaly", "base_risk": 60, "description": "Payment amount has robust z-score above 6 within its business unit"},
+    {"id": "login_burst", "version": "1.0.0", "kind": "anomaly", "base_risk": 55, "description": "User daily login count exceeds the median by at least 8 and 6 robust deviations"}
+  ]
+}

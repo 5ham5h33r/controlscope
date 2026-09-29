@@ -1,0 +1,10 @@
+controlscope:
+  target: dev
+  outputs:
+    dev:
+      type: bigquery
+      method: oauth
+      project: YOUR_GCP_PROJECT
+      dataset: controlscope
+      threads: 4
+      location: US

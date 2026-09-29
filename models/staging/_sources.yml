@@ -1,0 +1,39 @@
+version: 2
+sources:
+  - name: raw
+    database: "{{ target.project }}"
+    schema: "{{ target.dataset }}"
+    tables:
+      - name: raw_vendors
+      - name: raw_users
+      - name: raw_transactions
+      - name: raw_access_events
+models:
+  - name: stg_vendors
+    columns:
+      - name: vendor_id
+        data_tests: [not_null, unique]
+  - name: stg_users
+    columns:
+      - name: user_id
+        data_tests: [not_null, unique]
+  - name: stg_transactions
+    columns:
+      - name: transaction_id
+        data_tests: [not_null, unique]
+      - name: vendor_id
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_vendors')
+                field: vendor_id
+  - name: stg_access_events
+    columns:
+      - name: event_id
+        data_tests: [not_null, unique]
+      - name: user_id
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_users')
+                field: user_id

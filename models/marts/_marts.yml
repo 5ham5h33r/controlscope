@@ -1,0 +1,19 @@
+version: 2
+models:
+  - name: mart_findings
+    columns:
+      - name: finding_id
+        data_tests: [not_null, unique]
+      - name: control_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('control_registry')
+                field: control_id
+      - name: evidence_refs
+        data_tests: [not_null]
+  - name: mart_control_coverage
+    columns:
+      - name: control_id
+        data_tests: [not_null, unique]

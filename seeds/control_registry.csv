@@ -1,0 +1,11 @@
+control_id,control_version,kind,base_risk,description
+duplicate_invoice,1.0.0,deterministic,65,Paid invoice ID repeated for the same vendor
+split_payment,1.0.0,deterministic,70,Same-day sub-threshold payments to one vendor total at least USD 10000
+off_hours_payment,1.0.0,deterministic,40,Payment outside 0600-2200 UTC
+inactive_vendor_payment,1.0.0,deterministic,75,Paid transaction references an inactive vendor
+self_approval,1.0.0,deterministic,80,Initiator and approver are the same user
+missing_high_value_approval,1.0.0,deterministic,85,Payment above USD 25000 has no approver
+terminated_user_login,1.0.0,deterministic,90,Terminated user logged in
+dormant_privileged_login,1.0.0,deterministic,75,Privileged user logged in after at least 30 days without a prior login
+amount_outlier,1.0.0,anomaly,60,Payment amount has robust z-score above 6 within its business unit
+login_burst,1.0.0,anomaly,55,User daily login count exceeds the median by at least 8 and 6 robust deviations
