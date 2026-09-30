@@ -1,12 +1,18 @@
-# Looker Studio dashboard specification
+# Dashboard guide and Looker Studio specification
 
-The live ControlScope | Synthetic Audit Review report was created in a separate Data Studio account on 2026-09-29. It reads the synthetic `controlscope-audit-2026.controlscope` BigQuery dataset. The owner account could not use Data Studio in its country, so the alternate account owns the report. Access is currently limited to the report owner; share it deliberately if other reviewers need it.
+[Public review workspace](https://5ham5h33r.github.io/controlscope/) · [Demo walkthrough](demo.md) · [Back to README](../README.md)
+
+## Available dashboards
+
+The public review workspace is a self-contained HTML snapshot hosted on GitHub Pages. It supports a prioritized queue, search and filters, readable source evidence, control coverage, and run details. It requires no sign-in. Generate a local copy with `controlscope dashboard` after completing the README setup.
+
+A separate Looker Studio report was created on 2026-09-29 over the synthetic `controlscope-audit-2026.controlscope` BigQuery dataset. It is restricted to the report owner. The captures below allow repository visitors to inspect its current scope without requesting account access.
 
 The report has four pages: Overview (11 findings, 6 high-risk findings, findings by control, current score histogram, status), Finding review (11 findings with control, entity, business unit, status, and score), Source evidence (33 source rows with a `finding_id` filter and JSON), and Run & control quality (all 10 registry controls and the published run ID and creation time). The report is read-only. The [public review workspace](https://5ham5h33r.github.io/controlscope/) shows the same synthetic snapshot with a prioritized queue, readable source fields, review history, and run lineage. Generate a local copy with `controlscope dashboard` after `controlscope demo`.
 
 The live report is an MVP subset of the specification below. It does not yet show a review-action history, Gemini enrichments, age calculations, or individual fields inside `runs.manifest_json`. Data Studio interpreted `manifest_json` as a date in the direct connector, so the run table omits that field; inspect the raw BigQuery JSON or create a text-typed view before adding it. The currently published synthetic snapshot has no review actions or enrichments and only one run, so progress and run-trend comparisons cannot yet be demonstrated. The BigQuery project uses the sandbox; its tables may expire after 60 days unless billing is enabled and the data is republished. The connector and report currently load live data without linked billing.
 
-The alternate account has BigQuery Job User on project `controlscope-audit-2026` and BigQuery Data Viewer on dataset `controlscope`. These roles were granted specifically for this report. The report is not public. Current report captures are linked below.
+The report account uses BigQuery Job User on the project and BigQuery Data Viewer on the synthetic dataset. Reproducing the report requires an account authorized for both queries and dataset reads.
 
 ## BigQuery sources
 

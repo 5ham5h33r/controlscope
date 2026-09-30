@@ -38,6 +38,10 @@ The local engine uses exact Python medians. The warehouse uses BigQuery `PERCENT
 
 `publish-bigquery` copies the reviewed local records into BigQuery tables `runs`, `source_rows`, `findings`, `evidence`, `review_actions`, and `enrichments`. It truncates and reloads those tables as a complete snapshot, while retaining all runs and append-only decisions from the local store. It checks evidence integrity before publication.
 
+## Detector thresholds
+
+The payment amount detector computes a median and median absolute deviation (MAD) within each business unit and flags robust z-scores above 6. The login burst detector compares each user's daily event count with the median and MAD across user-days, requires at least eight extra logins above the baseline, and flags a robust score above 6 or a zero-MAD baseline. These thresholds are demonstrated on injected synthetic scenarios; they have not been calibrated against production false-positive rates.
+
 ## Tests and limits
 
 Unit tests cover determinism, all ten injected scenarios, registry parity, evidence links, run reuse, required review rationale, append-only triggers, and rejection of unsupported enrichment IDs. dbt tests check source keys/relationships, mart keys, all controls exercised, and evidence references. Live dbt execution, Gemini calls, and Looker Studio publication require cloud credentials and are not part of the offline validation.
