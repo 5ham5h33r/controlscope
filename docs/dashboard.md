@@ -6,7 +6,7 @@ The report has four pages: Overview (11 findings, 6 high-risk findings, findings
 
 The live report is an MVP subset of the specification below. It does not yet show a review-action history, Gemini enrichments, age calculations, or individual fields inside `runs.manifest_json`. Data Studio interpreted `manifest_json` as a date in the direct connector, so the run table omits that field; inspect the raw BigQuery JSON or create a text-typed view before adding it. The currently published synthetic snapshot has no review actions or enrichments and only one run, so progress and run-trend comparisons cannot yet be demonstrated. The BigQuery project uses the sandbox; its tables may expire after 60 days unless billing is enabled and the data is republished. The connector and report currently load live data without linked billing.
 
-The alternate account has BigQuery Job User on project `controlscope-audit-2026` and BigQuery Data Viewer on dataset `controlscope`. These roles were granted specifically for this report. The report is not public. Screenshots have not been added to the repository.
+The alternate account has BigQuery Job User on project `controlscope-audit-2026` and BigQuery Data Viewer on dataset `controlscope`. These roles were granted specifically for this report. The report is not public. Current report captures are linked below.
 
 ## BigQuery sources
 
@@ -51,13 +51,13 @@ Looker Studio is read-only for this MVP. Record decisions with the CLI and run `
 - Alert tile: count of findings without evidence should be zero; the local integrity gate and dbt singular test enforce this before publication.
 - Compare runs by control/entity to see repeated exceptions. Only compare periods with the same control version or label version changes.
 
-## Screenshot checklist for deployment
+## Current report captures
 
-Capture screenshots from the published Looker Studio report in your own account after binding the data sources:
+These images were exported from the live report on 2026-09-29 and contain synthetic data only:
 
-1. Overview with all ten controls, risk bands, and status cards visible.
-2. Finding review with one source-linked exception and its exact evidence rows visible.
-3. Override history showing original score, replacement score, actor, time, and rationale.
-4. Run quality page showing manifest fields and control versions.
+- [Overview](screenshots/overview.png)
+- [Finding review](screenshots/finding-review.png)
+- [Source evidence](screenshots/source-evidence.png)
+- [Run & control quality](screenshots/run-control-quality.png)
 
-Store sanitized captures in `docs/screenshots/` and link them here. The synthetic records are safe to show publicly, but do not include account tokens, project billing details, or unrelated cloud resources.
+They document the current report. The review history and full manifest views in the specification above are pending, so these captures do not demonstrate those workflows.

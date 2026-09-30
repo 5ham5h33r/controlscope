@@ -87,7 +87,7 @@ controlscope enrich FINDING_ID --provider gemini --model gemini-2.5-flash
 
 Gemini receives only the derived rule detail and synthetic evidence references, never full source rows, names, or IP addresses. It can only select fact IDs and suggested review-step IDs. ControlScope validates every returned ID and renders the final text from known facts and a fixed step list. A rejected response cannot alter the finding or evidence. The default `template` provider gives the same grounded format without a key. Prompt and model versions are recorded with enrichment.
 
-The curated BigQuery tables are published in `controlscope-audit-2026.controlscope`. The live Looker Studio report is owned by the report-owning Google account and reads the synthetic dataset. Its four pages cover findings, risk scores, linked evidence, and control/run quality. See the [dashboard specification and current gaps](docs/dashboard.md). The local HTML dashboard remains available without cloud access.
+The curated BigQuery tables are published in `controlscope-audit-2026.controlscope`. The live Looker Studio report is owned by the report-owning Google account and reads the synthetic dataset. Its four pages cover findings, risk scores, linked evidence, and control/run quality. See the [dashboard specification, captures, and current gaps](docs/dashboard.md). The local HTML dashboard remains available without cloud access.
 
 ## Architecture
 
