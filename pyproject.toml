@@ -12,6 +12,12 @@ license = {file = "LICENSE"}
 authors = [{name = "Shamsheer Abdul Rahiman"}]
 dependencies = []
 
+[project.urls]
+Homepage = "https://5ham5h33r.github.io/controlscope/"
+Repository = "https://github.com/5ham5h33r/controlscope"
+Documentation = "https://github.com/5ham5h33r/controlscope#readme"
+Issues = "https://github.com/5ham5h33r/controlscope/issues"
+
 [project.optional-dependencies]
 cloud = ["google-cloud-bigquery>=3.25", "google-genai>=1.0", "dbt-bigquery>=1.8"]
 dev = ["pytest>=8", "ruff>=0.6", "sqlfluff>=3"]

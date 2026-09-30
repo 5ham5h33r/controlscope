@@ -1,15 +1,68 @@
 # ControlScope
 
-ControlScope is an open-source, synthetic audit analytics demo. It generates financial transactions and identity events, evaluates eight deterministic controls and two statistical detectors, links every finding to source rows, and records reviewer decisions in an append-only log. The offline demo needs only Python 3.11 or newer. BigQuery, dbt, Gemini, and Looker Studio are optional cloud steps.
+**Audit analytics with traceable evidence and reproducible reviews.**
 
-This is a portfolio demonstration. Findings are review leads, not conclusions of fraud or regulatory violations. The public workflow accepts synthetic data only.
+[Explore the live demo](https://5ham5h33r.github.io/controlscope/) · [Two-minute walkthrough](docs/demo.md) · [Architecture](docs/architecture.md) · [Deployment guide](docs/deployment.md)
 
-## Run the local demo
+ControlScope checks synthetic financial transactions and identity events for control exceptions, ranks the findings for review, and links each finding to the exact records that triggered it. Reviewers can confirm, dismiss, or override a finding while preserving the original result and decision history.
+
+**Stack:** Python · SQL · dbt · BigQuery · SQLite · Looker Studio · optional Gemini enrichment
+
+## Why this project exists
+
+An audit finding is useful only when someone can explain why it was flagged, inspect its evidence, and reproduce the check. ControlScope connects those steps in one workflow: generate a dated dataset, run versioned controls, inspect source records, record a decision, and publish the results.
+
+For example, a terminated employee's login becomes a finding with both the employee record and the access event attached. A reviewer can inspect those records and record a reasoned decision without changing the original evidence.
+
+This is a portfolio project using synthetic data. Findings are review leads, and the scores indicate review priority rather than the probability of misconduct.
+
+## Explore the demo
+
+**[Open ControlScope →](https://5ham5h33r.github.io/controlscope/)** — no sign-in or cloud account required.
+
+1. Start on **Overview** to see the highest-priority open findings.
+2. Open **Terminated user login** to inspect the control rationale and linked source records.
+3. Use **Findings** to search and filter, **Controls** to inspect all ten checks, and **Run details** to examine the run manifest.
+
+The published snapshot contains **272 source records, 11 findings, 33 evidence links, and 10 controls**, using seed `42` and snapshot date `2026-01-31`. These are demonstration counts, not measured production outcomes. The site is a static snapshot; local CLI commands record decisions and regenerate the dashboard. See the [walkthrough](docs/demo.md) for the full review loop.
+
+## What the implementation demonstrates
+
+| Capability | Implementation |
+| --- | --- |
+| Repeatable analytics | Versioned controls; deterministic synthetic data; dataset, source-code, and registry hashes |
+| Warehouse modeling | dbt staging, intermediate, and mart models over BigQuery sources |
+| Anomaly detection | Median/MAD detectors for payment amounts and login bursts |
+| Evidence integrity | Findings reference source rows from the same run; integrity checks reject broken links |
+| Auditable review | Required actor and rationale; append-only decisions with prior and replacement values |
+| Constrained AI enrichment | Gemini selects allowed fact and review-step IDs; validated selections are rendered from known text |
+| Usable reporting | Public review workspace, local HTML export, and a separate Looker Studio report |
+
+## Run locally
+
+Requires Git and Python 3.11 or newer. The local demo has no runtime Python dependencies or cloud credentials. Run these commands from the cloned repository:
 
 ```bash
+git clone https://github.com/5ham5h33r/controlscope.git
+cd controlscope
 python -m venv .venv
-# Windows PowerShell: .venv\Scripts\Activate.ps1
-# macOS/Linux: source .venv/bin/activate
+```
+
+Activate the environment:
+
+```powershell
+# Windows PowerShell
+.venv\Scripts\Activate.ps1
+```
+
+```bash
+# macOS / Linux
+source .venv/bin/activate
+```
+
+Then install and run:
+
+```bash
 python -m pip install -e .
 controlscope demo
 controlscope findings
@@ -17,34 +70,25 @@ controlscope dashboard
 controlscope verify
 ```
 
-Open `data/dashboard.html` in a browser for the local review workspace. It prioritizes open findings, shows complete control names and descriptions, and presents every linked source row as readable fields. Use the Findings page to search and filter, the Controls page to inspect all enabled checks, and Run details to see the reproducibility manifest. Select a finding for its rationale, evidence, and review history. The dashboard is a static snapshot; record decisions with the CLI and rebuild it to refresh the view:
+Open `data/dashboard.html` in your browser. A fresh default run produces 11 findings; `verify` should report `"ok": true` with no errors. Installation needs access to a Python package index; the installed local workflow runs offline.
+
+To record a decision, replace `FINDING_ID` with an ID from `controlscope findings`. This example dismisses a finding after reviewing its evidence:
 
 ```bash
 controlscope show FINDING_ID
-controlscope review FINDING_ID confirm --actor analyst@example.test --reason "Matched the supporting rows"
 controlscope review FINDING_ID dismiss --actor analyst@example.test --reason "Approved test transaction"
-controlscope review FINDING_ID override --score 35 --actor analyst@example.test --reason "Compensating control verified"
 controlscope enrich FINDING_ID
 controlscope export
 controlscope dashboard
 ```
 
-Each decision requires an actor and rationale. An override also requires a replacement score from 0 to 100. `controlscope export` writes an audit summary to `data/audit-summary.json`.
-
-The default dataset uses seed `42` and a snapshot date of `2026-01-31`. To change them:
-
-```bash
-controlscope generate --seed 7 --as-of 2026-02-28
-controlscope run
-```
-
-`controlscope demo` generates and runs in one command. Repeating a run with unchanged data, code, and registry reuses the run ID and preserves review history. The manifest stores the dataset digest, source-code digest, Git commit, seed, snapshot date, control versions, and risk formula version. `data/` is ignored by Git because it contains reproducible generated artifacts.
+The default enrichment provider uses local templates. `export` writes `data/audit-summary.json`. Refresh the browser after rebuilding the dashboard to see the decision. The [walkthrough](docs/demo.md) also covers confirmation, score overrides, and alternate snapshots.
 
 ## Controls and scoring
 
-The [control registry](controls/registry.json) defines versions, descriptions, and base scores. The [dbt seed](seeds/control_registry.csv) carries the same versions and scores for BigQuery. A test checks that they match.
+The [control registry](controls/registry.json) defines each check's version, description, and base score. The [dbt seed](seeds/control_registry.csv) mirrors those settings; a test checks that they match.
 
-| Deterministic control | Trigger |
+| Rule | Trigger |
 | --- | --- |
 | Duplicate invoice | Same vendor and invoice ID occur in more than one paid row |
 | Split payment | At least two same-day payments below USD 10,000 to one vendor total USD 10,000 or more |
@@ -55,58 +99,29 @@ The [control registry](controls/registry.json) defines versions, descriptions, a
 | Terminated user login | A terminated user has a login event |
 | Dormant privileged login | At least 30 days between a privileged user's logins |
 
-The amount outlier detector uses the median and median absolute deviation (MAD) per business unit; it flags robust z-scores above 6. The login burst detector compares a user's daily count with the median and MAD across user-days, requiring at least eight extra logins and a robust score above 6 (or a zero-MAD baseline). Both run on synthetic records with deliberately injected examples.
+Two additional statistical detectors flag payment amount outliers and login bursts using median absolute deviation (MAD). Synthetic data deliberately includes scenarios for all ten checks. Detector thresholds and warehouse implementation details are documented in the [architecture guide](docs/architecture.md).
 
-Risk score = `min(100, base_risk + min(15, 5 × (evidence_row_count − 1)))`. High is 80–100, medium is 50–79, and low is 0–49. The score indicates review priority, not probability of misconduct.
-
-## Cloud workflow
-
-Install cloud dependencies and configure [Application Default Credentials](https://cloud.google.com/docs/authentication/provide-credentials-adc) with access to a BigQuery project. Costs and quota depend on your Google Cloud account.
-
-```bash
-python -m pip install -e ".[cloud]"
-controlscope generate
-controlscope run
-controlscope upload-bigquery --project YOUR_PROJECT --dataset controlscope
-cp profiles.example.yml profiles.yml  # edit project and authentication settings
-dbt seed --profiles-dir .
-dbt run --profiles-dir .
-dbt test --profiles-dir .
-controlscope publish-bigquery --project YOUR_PROJECT --dataset controlscope
-```
-
-On Windows PowerShell, use `Copy-Item profiles.example.yml profiles.yml` instead of `cp`. The upload creates `raw_*` BigQuery tables; dbt creates staging views, intermediate views, and finding/coverage marts. Publication copies versioned runs, all source-row snapshots, findings, evidence, review actions, and enrichment to curated BigQuery tables for reporting. Rerun `publish-bigquery` after reviewer actions. The local SQLite file is the offline working store; the cloud dataset holds the published analytical record.
-
-For Google Cloud Shell, [scripts/deploy_cloud_shell.sh](scripts/deploy_cloud_shell.sh) performs the same sequence after the repository is available there: `bash scripts/deploy_cloud_shell.sh YOUR_PROJECT controlscope`.
-
-To request Gemini enrichment, set `GEMINI_API_KEY` in your environment and run:
-
-```bash
-controlscope enrich FINDING_ID --provider gemini --model gemini-2.5-flash
-```
-
-Gemini receives only the derived rule detail and synthetic evidence references, never full source rows, names, or IP addresses. It can only select fact IDs and suggested review-step IDs. ControlScope validates every returned ID and renders the final text from known facts and a fixed step list. A rejected response cannot alter the finding or evidence. The default `template` provider gives the same grounded format without a key. Prompt and model versions are recorded with enrichment.
-
-The curated BigQuery tables are published in `controlscope-audit-2026.controlscope`. The live Looker Studio report is owned by the report-owning Google account and reads the synthetic dataset. Its four pages cover findings, risk scores, linked evidence, and control/run quality. See the [dashboard specification, captures, and current gaps](docs/dashboard.md). The [public review workspace](https://5ham5h33r.github.io/controlscope/) is a synthetic snapshot that demonstrates the more complete reviewer experience without cloud access.
+Risk score = `min(100, base_risk + min(15, 5 × (evidence_row_count − 1)))`. High is 80–100, medium is 50–79, and low is 0–49.
 
 ## Architecture
 
 ```mermaid
 flowchart LR
-  G[Synthetic generator] --> CSV[Versioned CSV snapshot]
+  G[Synthetic generator] --> CSV[Dated CSV snapshot]
+  CSV --> E[Python control engine]
+  E --> S[SQLite findings and evidence]
+  S --> R[CLI review and enrichment]
+  R --> H[HTML review workspace]
+  R --> P[BigQuery curated audit tables]
   CSV --> BQ[BigQuery raw tables]
   BQ --> DBT[dbt staging, intermediate, marts]
-  CSV --> E[Local control engine]
-  E --> S[SQLite runs, findings, evidence]
-  S --> R[Reviewer actions and enrichment]
-  R --> P[BigQuery curated tables]
   DBT --> L[Looker Studio]
   P --> L
 ```
 
-The local engine supports a credential-free demo and acts as the review workflow. The dbt models independently express the controls against warehouse sources. The cloud data model and dashboard fields are described in [docs/architecture.md](docs/architecture.md).
+The Python engine supports local review; dbt independently expresses the controls in the warehouse. Publication copies local runs, source snapshots, findings, decisions, and enrichments to BigQuery. See [data contracts and design tradeoffs](docs/architecture.md).
 
-## Validation
+## Validation and current scope
 
 ```bash
 python -m pip install -e ".[dev]"
@@ -118,12 +133,27 @@ sqlfluff parse tests --dialect bigquery --ignore-local-config --config .sqlfluff
 controlscope verify
 ```
 
-CI runs these local checks. With the `GCP_SERVICE_ACCOUNT_JSON` secret and `GCP_PROJECT`/`GCP_DATASET` variables configured, its cloud job additionally uploads synthetic data and runs dbt seed, models, and tests. The SQL evidence test rejects references to missing source rows.
+[GitHub Actions](https://github.com/5ham5h33r/controlscope/actions/workflows/ci.yml) runs Python tests and linting plus SQL linting/parsing. Tests cover deterministic generation, all ten injected scenarios, evidence links, run reuse, append-only reviews, registry parity, rejected enrichment IDs, and dashboard lineage. The cloud job executes dbt only when the required credentials and variables are configured; a skipped cloud integration step is not evidence of a successful warehouse run.
 
-## Extend a control
+| Surface | Current scope |
+| --- | --- |
+| Public dashboard | Hosted synthetic snapshot; search, filters, evidence inspection, controls, and run details |
+| Local workflow | Runnable control engine, review decisions, template enrichment, exports, and dashboard generation |
+| BigQuery / dbt | Deployment recorded with 17 passing dbt tests; requires your own authorized cloud project to reproduce |
+| Looker Studio | Separate report with owner-restricted access; [captures and known gaps](docs/dashboard.md) are available |
+| Gemini | Optional integration requiring an API key; the public snapshot does not demonstrate a live Gemini response |
 
-Add a versioned entry to [controls/registry.json](controls/registry.json) and [seeds/control_registry.csv](seeds/control_registry.csv), implement the local logic in [controls.py](src/controlscope/controls.py), and add the BigQuery SQL branch to the appropriate `int_*_hits` model. Add a synthetic scenario and test, then run `controlscope demo`, `controlscope verify`, and the validation commands. The registry parity test catches mismatched versions and base scores.
+Production authentication, scheduled runs, automatic dashboard refresh, and real-world detection accuracy are outside the current scope. Reviewer identity is a caller-supplied string. The recorded BigQuery deployment uses sandbox tables that can expire; the public static demo remains independently hosted. See the [deployment record](docs/deployment.md) for dated evidence and setup instructions.
 
-## License
+## Documentation and extension
 
-MIT. See [LICENSE](LICENSE).
+- [Demo walkthrough](docs/demo.md): inspect a finding and complete a local review.
+- [Architecture](docs/architecture.md): data contracts, lineage, detector details, and design limits.
+- [Cloud deployment](docs/deployment.md): BigQuery/dbt setup, optional Gemini enrichment, and deployment record.
+- [Dashboard guide](docs/dashboard.md): public workspace, Looker Studio specification, and report captures.
+
+To add a control, update the [registry](controls/registry.json) and [dbt seed](seeds/control_registry.csv), implement the Python logic in [controls.py](src/controlscope/controls.py), and add its SQL branch to the appropriate `int_*_hits` model. Add a synthetic scenario and test, then run the validation commands above.
+
+## Author and license
+
+Built by **Shamsheer Abdul Rahiman**. Licensed under the [MIT License](LICENSE).
