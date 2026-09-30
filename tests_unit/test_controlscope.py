@@ -8,6 +8,7 @@ from pathlib import Path
 
 from controlscope.controls import evaluate, load_registry
 from controlscope.data import dataset_hash, generate, read_dataset, write_dataset
+from controlscope.dashboard import write_dashboard
 from controlscope.enrichment import enrich, render_selection
 from controlscope.pipeline import REGISTRY, review, run
 from controlscope.store import connect, finding_detail, integrity_errors
@@ -54,6 +55,19 @@ class ControlScopeTests(unittest.TestCase):
                 self.assertGreater(len(finding_detail(conn, row[0])["evidence"]), 0)
         finally:
             conn.close()
+
+    def test_dashboard_keeps_finding_evidence_and_run_lineage(self):
+        result = run(self.data_dir, self.db_path)
+        destination = self.root / "dashboard.html"
+        write_dashboard(self.db_path, destination)
+        html = destination.read_text(encoding="utf-8")
+        payload = json.loads(html.split("const DATA=", 1)[1].split(";\nconst $=", 1)[0])
+        self.assertEqual(result["run_id"], payload["runs"][0]["run_id"])
+        self.assertEqual(result["findings"], len(payload["findings"]))
+        self.assertEqual(10, len(payload["registry"]))
+        self.assertTrue(all(finding["evidence"] for finding in payload["findings"]))
+        self.assertIn("Linked source evidence", html)
+        self.assertNotIn("__DATA__", html)
 
     def test_review_override_is_append_only_with_originals(self):
         run(self.data_dir, self.db_path)
