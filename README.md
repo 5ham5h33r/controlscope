@@ -17,7 +17,7 @@ controlscope dashboard
 controlscope verify
 ```
 
-Open `data/dashboard.html` in a browser for the local, read-only dashboard. It shows control coverage, risk distribution, reviewer status, aging, and linked source rows. Select a finding to see the evidence. To review it, copy its `finding_id` from `controlscope findings`:
+Open `data/dashboard.html` in a browser for the local review workspace. It prioritizes open findings, shows complete control names and descriptions, and presents every linked source row as readable fields. Use the Findings page to search and filter, the Controls page to inspect all enabled checks, and Run details to see the reproducibility manifest. Select a finding for its rationale, evidence, and review history. The dashboard is a static snapshot; record decisions with the CLI and rebuild it to refresh the view:
 
 ```bash
 controlscope show FINDING_ID
@@ -29,7 +29,7 @@ controlscope export
 controlscope dashboard
 ```
 
-Each decision requires an actor and rationale. An override also requires a replacement score from 0 to 100. Rebuild the dashboard after decisions to refresh its static snapshot. `controlscope export` writes an audit summary to `data/audit-summary.json`.
+Each decision requires an actor and rationale. An override also requires a replacement score from 0 to 100. `controlscope export` writes an audit summary to `data/audit-summary.json`.
 
 The default dataset uses seed `42` and a snapshot date of `2026-01-31`. To change them:
 
@@ -87,7 +87,7 @@ controlscope enrich FINDING_ID --provider gemini --model gemini-2.5-flash
 
 Gemini receives only the derived rule detail and synthetic evidence references, never full source rows, names, or IP addresses. It can only select fact IDs and suggested review-step IDs. ControlScope validates every returned ID and renders the final text from known facts and a fixed step list. A rejected response cannot alter the finding or evidence. The default `template` provider gives the same grounded format without a key. Prompt and model versions are recorded with enrichment.
 
-The curated BigQuery tables are published in `controlscope-audit-2026.controlscope`. The live Looker Studio report is owned by the report-owning Google account and reads the synthetic dataset. Its four pages cover findings, risk scores, linked evidence, and control/run quality. See the [dashboard specification, captures, and current gaps](docs/dashboard.md). The local HTML dashboard remains available without cloud access.
+The curated BigQuery tables are published in `controlscope-audit-2026.controlscope`. The live Looker Studio report is owned by the report-owning Google account and reads the synthetic dataset. Its four pages cover findings, risk scores, linked evidence, and control/run quality. See the [dashboard specification, captures, and current gaps](docs/dashboard.md). The [static review workspace](docs/index.html) is a synthetic snapshot that demonstrates the more complete reviewer experience without cloud access.
 
 ## Architecture
 
